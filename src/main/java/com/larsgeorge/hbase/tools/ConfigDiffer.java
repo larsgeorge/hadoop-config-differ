@@ -163,6 +163,13 @@ public class ConfigDiffer {
     public int getSize() {
       return properties.size();
     }
+
+    public Property getProperty(String key) {
+      for (Property property : properties) {
+        if (property.getKey().equals(key)) return property;
+      }
+      return null;
+    }
   }
 
   private class MergedConfiguration {
@@ -265,8 +272,14 @@ public class ConfigDiffer {
   }
 
   private void diff() {
+    System.out.println("=========================================================");
+    System.out.println("Start");
+    System.out.println("=========================================================");
+
     MergedConfiguration mc = new MergedConfiguration();
     TreeSet<String> prevKeys = null;
+    // iterate over configs gather details
+    System.out.println("Checking differences across versions...\n");
     for (Configuration conf : configs) {
       TreeSet<String> keys = new TreeSet<String>();
       for (Property p : conf.getProperties()) {
@@ -274,16 +287,23 @@ public class ConfigDiffer {
         keys.add(p.getKey());
       }
       String currentVersion = conf.getProperties().first().getSource();
+      // if this is the second+ config print out differences
       if (prevKeys != null) {
         TreeSet<String> addedKeys = new TreeSet<String>(keys);
         addedKeys.removeAll(prevKeys);
         if (addedKeys.size() > 0) {
           System.out.println("Added keys in " + currentVersion + ":");
-          System.out.println(addedKeys);
+          for (String key : addedKeys) {
+            Property p = conf.getProperty(key);
+            System.out.println(p);
+          }
+          System.out.println();
         }
       }
       prevKeys = keys;
     }
+    System.out.println("---------------------------------------------------------");
+    System.out.println("Checking differences per property...\n");
     int diffCount = 0;
     for (String key : mc.getProperties().keySet()) {
       TreeSet<Property> merged = mc.getProperties().get(key);
@@ -293,10 +313,11 @@ public class ConfigDiffer {
         for (Property p : merged) {
           System.out.println(p.toString());
         }
+        System.out.println();
       }
     }
     System.out.println("Total: " + diffCount + " differences.");
-
+    System.out.println("=========================================================");
   }
 
   private static void printHelp() {
