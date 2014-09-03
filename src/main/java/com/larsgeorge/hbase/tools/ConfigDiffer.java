@@ -278,6 +278,7 @@ public class ConfigDiffer {
 
     MergedConfiguration mc = new MergedConfiguration();
     TreeSet<String> prevKeys = null;
+    Configuration prevConf = null;
     // iterate over configs gather details
     System.out.println("Checking differences across versions...\n");
     for (Configuration conf : configs) {
@@ -306,13 +307,14 @@ public class ConfigDiffer {
         if (removedKeys.size() > 0) {
           System.out.println("Removed keys in " + currentVersion + ":");
           for (String key : removedKeys) {
-            Property p = conf.getProperty(key);
-            System.out.println("key='" + key + "'");
+            Property p = prevConf.getProperty(key);
+            System.out.println(p);
           }
           System.out.println();
         }
       }
       prevKeys = keys;
+      prevConf = conf;
     }
     System.out.println("---------------------------------------------------------");
     System.out.println("Checking differences per property...\n");
