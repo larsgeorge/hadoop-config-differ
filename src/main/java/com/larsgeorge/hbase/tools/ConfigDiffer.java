@@ -289,6 +289,7 @@ public class ConfigDiffer {
       String currentVersion = conf.getProperties().first().getSource();
       // if this is the second+ config print out differences
       if (prevKeys != null) {
+        // check for all newly added keys
         TreeSet<String> addedKeys = new TreeSet<String>(keys);
         addedKeys.removeAll(prevKeys);
         if (addedKeys.size() > 0) {
@@ -296,6 +297,17 @@ public class ConfigDiffer {
           for (String key : addedKeys) {
             Property p = conf.getProperty(key);
             System.out.println(p);
+          }
+          System.out.println();
+        }
+        // determine all removed keys
+        TreeSet<String> removedKeys = new TreeSet<String>(prevKeys);
+        removedKeys.removeAll(keys);
+        if (removedKeys.size() > 0) {
+          System.out.println("Removed keys in " + currentVersion + ":");
+          for (String key : removedKeys) {
+            Property p = conf.getProperty(key);
+            System.out.println("key='" + key + "'");
           }
           System.out.println();
         }
