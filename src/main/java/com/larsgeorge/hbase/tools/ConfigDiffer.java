@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 public class ConfigDiffer {
 
   private static final Log LOG = LogFactory.getLog(ConfigDiffer.class);
+  private static final String NULL = "NULL";
 
   private ArrayList<ConfigurationInfo> configInfos = new ArrayList<ConfigurationInfo>();
   private ArrayList<Configuration> configs = new ArrayList<Configuration>();
@@ -56,8 +57,8 @@ public class ConfigDiffer {
 
     private Property(String key, String value, String description, String source) {
       this.key = key;
-      this.value = value != null ? value : "NULL";
-      this.description = description != null ? description : "NULL";
+      this.value = value != null ? value : NULL;
+      this.description = description != null ? description : NULL;
       this.source = source;
     }
 
@@ -167,6 +168,14 @@ public class ConfigDiffer {
     public Property getProperty(String key) {
       for (Property property : properties) {
         if (property.getKey().equals(key)) return property;
+      }
+      return null;
+    }
+
+    public Property getPropertyByDescription(String description) {
+      for (Property property : properties) {
+        if (property.getDescription() != null && property.getDescription().equals(description))
+          return property;
       }
       return null;
     }
@@ -290,14 +299,17 @@ public class ConfigDiffer {
       String currentVersion = conf.getProperties().first().getSource();
       // if this is the second+ config print out differences
       if (prevKeys != null) {
-        // check for all newly added keys
+        // check for all newly added or renamed keys
         TreeSet<String> addedKeys = new TreeSet<String>(keys);
         addedKeys.removeAll(prevKeys);
         if (addedKeys.size() > 0) {
-          System.out.println("Added keys in " + currentVersion + ":");
+          System.out.println("Added or renamed keys in " + currentVersion + ":");
           for (String key : addedKeys) {
             Property p = conf.getProperty(key);
-            System.out.println(p);
+            // we assume renaming does NOT change the description (or else how can we tell?)
+            Property p2 = prevConf.getPropertyByDescription(p.getDescription());
+            boolean renamed = !NULL.equals(p.getDescription()) && p2 != null;
+            System.out.println(renamed ? "renamed: " + p + ",\n   from: " + p2 : "added:   " + p);
           }
           System.out.println();
         }
