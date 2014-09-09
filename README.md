@@ -70,7 +70,7 @@ implemented using the `PathMatcher` class and the `glob` syntax. See the online
 [PathFinder](http://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String))
 help for the full supported syntax.
 
-Run the command with the --help (or -h) parameter to see all possible options:
+Run the command with the `--help` (or `-h`) parameter to see all possible options:
 
 ```
 $ sh target/bin/run-finder -h
