@@ -106,11 +106,6 @@ Usage: FindProperties [options]
                        Default: false
 ```
 
-IMPORTANT DISCLAIMER: Many of the found "properties" aren't really useful or mistakenly listed, 
-like those starting with "org.apache.hadoop.*". The tool simply greps a pattern in the matching 
-files, and some of them are not used as properties. On the other hand, all named properties from 
-the given configuration file are removed (when you specify one), so quite a few are valid. Again, 
-some of those are still hidden on purpose, since it is not useful to tinker with them unless in 
-extreme situations, or during test runs. Be VERY CAREFUL of what you do. I warned ya!
+IMPORTANT DISCLAIMER: Many of the found "properties" aren't really useful or mistakenly listed, like those starting with "org.apache.hadoop.*". The tool simply greps a pattern in the matching files, and some of them are not used as properties. On the other hand, all named properties from the given configuration file are removed (when you specify one), so quite a few are valid. Again, some of those are still hidden on purpose, since it is not useful to tinker with them unless in extreme situations, or during test runs. Be VERY CAREFUL of what you do. I warned ya!
 
 Enjoy!
