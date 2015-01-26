@@ -179,10 +179,14 @@ public class ConfigurationUtils {
           removedKeys.removeAll(keys);
           if (removedKeys.size() > 0) {
             System.out.println("Removed keys in " + currentVersion + ":");
+            int removedCount = 0;
             for (String key : removedKeys) {
               Property p = prevConf.getProperty(key);
+              removedCount++;
               printProperty(p, null, Action.Removed);
             }
+            if (!quiet) System.out.println("Summary for " + currentVersion + ": " + removedCount +
+              " removed properties.");
             System.out.println();
           }
         }
