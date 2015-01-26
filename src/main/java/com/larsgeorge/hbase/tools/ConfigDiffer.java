@@ -1,5 +1,6 @@
 package com.larsgeorge.hbase.tools;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,12 +22,17 @@ public class ConfigDiffer implements Runnable {
   private List<String> arguments = null;
   @Parameter(names = { "-h", "--help" }, description = "Print this help", help = true)
   private boolean printHelp = false;
+  @Parameter(names = { "-t", "--template" }, description = "Optional template name")
+  private String templateName = null;
+  @Parameter(names = { "-q", "--quiet"}, description = "Only print data, no info text")
+  private boolean quiet = false;
 
   private ArrayList<ConfigurationInfo> configInfos = new ArrayList<ConfigurationInfo>();
   private ArrayList<Configuration> configs = new ArrayList<Configuration>();
-  private ConfigurationUtils utils = new ConfigurationUtils();
+  private ConfigurationUtils utils = null;
 
-  public ConfigDiffer() {
+  public ConfigDiffer() throws IOException {
+    utils = new ConfigurationUtils(templateName, quiet);
   }
 
   private void parseArgs() {
@@ -47,7 +53,7 @@ public class ConfigDiffer implements Runnable {
     }
   }
 
-  private void diff() {
+  private void diff() throws IOException {
     utils.diff(configs);
   }
 
@@ -62,6 +68,11 @@ public class ConfigDiffer implements Runnable {
     }
   }
 
+  /**
+   * Main entry point. Starts the processing.
+   *
+   * @param args The command line arguments.
+   */
   public static void main(String[] args) {
     try {
       ConfigDiffer cd = new ConfigDiffer();
