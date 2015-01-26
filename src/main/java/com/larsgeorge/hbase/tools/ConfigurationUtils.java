@@ -49,7 +49,7 @@ public class ConfigurationUtils {
   private Mustache mustache = null;
 
   /** The possible actions triggering a report on a property. */
-  enum Action { Added, Renamed, Removed, Changed}
+  enum Action { Added, Renamed, Removed, Changed }
 
   public ConfigurationUtils() throws IOException {
   }
@@ -151,33 +151,40 @@ public class ConfigurationUtils {
         mc.addProperty(p);
         keys.add(p.getKey());
       }
-      String currentVersion = conf.getProperties().first().getSource();
-      // if this is the second+ config print out differences
-      if (prevKeys != null) {
-        // check for all newly added or renamed keys
-        TreeSet<String> addedKeys = new TreeSet<String>(keys);
-        addedKeys.removeAll(prevKeys);
-        if (addedKeys.size() > 0) {
-          if (!quiet) System.out.println("Added or renamed keys in " + currentVersion + ":");
-          for (String key : addedKeys) {
-            Property p = conf.getProperty(key);
-            // we assume renaming does NOT change the description (or else how can we tell?)
-            Property p2 = prevConf.getPropertyByDescription(p.getDescription());
-            boolean renamed = !Property.NULL.equals(p.getDescription()) && p2 != null;
-            printProperty(p, p2, renamed ? Action.Renamed : Action.Added);
+      // do not check empty configurations
+      if (conf.getProperties().size() > 0) {
+        String currentVersion = conf.getProperties().first().getSource();
+        // if this is the second+ config print out differences
+        if (prevKeys != null) {
+          // check for all newly added or renamed keys
+          TreeSet<String> addedKeys = new TreeSet<String>(keys);
+          addedKeys.removeAll(prevKeys);
+          if (addedKeys.size() > 0) {
+            if (!quiet) System.out.println("Added or renamed keys in " + currentVersion + ":");
+            int addedCount = 0, renamedCount = 0;
+            for (String key : addedKeys) {
+              Property p = conf.getProperty(key);
+              // we assume renaming does NOT change the description (or else how can we tell?)
+              Property p2 = prevConf.getPropertyByDescription(p.getDescription());
+              boolean renamed = !Property.NULL.equals(p.getDescription()) && p2 != null;
+              if (renamed) renamedCount++; else addedCount++;
+              printProperty(p, p2, renamed ? Action.Renamed : Action.Added);
+            }
+            if (!quiet) System.out.println("Summary for " + currentVersion + ": " + addedCount +
+              " added and " + renamedCount + " renamed properties.");
+            System.out.println();
           }
-          System.out.println();
-        }
-        // determine all removed keys
-        TreeSet<String> removedKeys = new TreeSet<String>(prevKeys);
-        removedKeys.removeAll(keys);
-        if (removedKeys.size() > 0) {
-          System.out.println("Removed keys in " + currentVersion + ":");
-          for (String key : removedKeys) {
-            Property p = prevConf.getProperty(key);
-            printProperty(p, null, Action.Removed);
+          // determine all removed keys
+          TreeSet<String> removedKeys = new TreeSet<String>(prevKeys);
+          removedKeys.removeAll(keys);
+          if (removedKeys.size() > 0) {
+            System.out.println("Removed keys in " + currentVersion + ":");
+            for (String key : removedKeys) {
+              Property p = prevConf.getProperty(key);
+              printProperty(p, null, Action.Removed);
+            }
+            System.out.println();
           }
-          System.out.println();
         }
       }
       prevKeys = keys;
