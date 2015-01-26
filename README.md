@@ -22,12 +22,15 @@ difference between them.
 You run it like so to get all parameters:
 
 ```
-$ sh target/bin/run-differ -h
+$ sh target/bin/run-differ
+Main parameters are required ("<filename1> <version1> <filename2> <version2> ...")
 Usage: ConfigDiffer [options] <filename1> <version1> <filename2> <version2> ...
   Options:
-    -h, --help   Print this help
-                 Default: false
-
+    -h, --help       Print this help
+                     Default: false
+    -q, --quiet      Only print data, no info text
+                     Default: false
+    -t, --template   Optional template name
 ```
 
 A concrete example might look like this:
@@ -42,6 +45,12 @@ Here we compare a couple of HBase versions against each other. The output will l
 properties have been added, renamed, or removed in what version. The renaming is based on the
 assumption that the description stayed the same. If that is not the case the properties will
 simply show up in the added and removed sections respectively.
+
+The config differ also supports [Mustache](https://github.com/spullara/mustache.java) and allows
+to supply an external template file. The default template is hardcoded and can be seen in the
+source code for the [ConfigurationUtil](https://github.com/larsgeorge/hadoop-config-differ/blob/master/src/main/java/com/larsgeorge/hbase/tools/ConfigurationUtils.java#L36)
+class. Use the `-t` parameter to specify an external template file containing a similar Mustache
+template.
 
 ## Tool: FindProperties
 
