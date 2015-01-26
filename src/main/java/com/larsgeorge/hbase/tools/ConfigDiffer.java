@@ -2,10 +2,8 @@ package com.larsgeorge.hbase.tools;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,26 +16,20 @@ public class ConfigDiffer implements Runnable {
 
   private static final Log LOG = LogFactory.getLog(ConfigDiffer.class);
 
-  @Parameter(description = "<filename1> <version1> <filename2> <version2> ...", required = true)
-  private List<String> arguments = null;
-  @Parameter(names = { "-h", "--help" }, description = "Print this help", help = true)
-  private boolean printHelp = false;
-  @Parameter(names = { "-t", "--template" }, description = "Optional template name")
-  private String templateName = null;
-  @Parameter(names = { "-q", "--quiet"}, description = "Only print data, no info text")
-  private boolean quiet = false;
-
+  private DifferParameters params = null;
   private ArrayList<ConfigurationInfo> configInfos = new ArrayList<ConfigurationInfo>();
   private ArrayList<Configuration> configs = new ArrayList<Configuration>();
   private ConfigurationUtils utils = null;
 
-  public ConfigDiffer() throws IOException {
-    utils = new ConfigurationUtils(templateName, quiet);
+  public ConfigDiffer(DifferParameters params) throws IOException {
+    this.params = params;
+    utils = new ConfigurationUtils(params.templateName, params.quiet);
   }
 
   private void parseArgs() {
-    for (int index = 0; index < arguments.size(); index += 2) {
-      ConfigurationInfo ci = new ConfigurationInfo(arguments.get(index), arguments.get(index + 1));
+    for (int index = 0; index < params.arguments.size(); index += 2) {
+      ConfigurationInfo ci = new ConfigurationInfo(params.arguments.get(index),
+        params.arguments.get(index + 1));
       configInfos.add(ci);
     }
   }
@@ -75,16 +67,16 @@ public class ConfigDiffer implements Runnable {
    */
   public static void main(String[] args) {
     try {
-      ConfigDiffer cd = new ConfigDiffer();
-      JCommander jc = new JCommander(cd);
+      DifferParameters params = new DifferParameters();
+      JCommander jc = new JCommander(params);
       jc.setProgramName(ConfigDiffer.class.getSimpleName());
       try {
         jc.parse(args);
-        if (cd.printHelp) {
+        if (params.printHelp) {
           jc.usage();
           System.exit(0);
         }
-        if (cd.arguments == null || (cd.arguments.size() & 1) == 1) {
+        if (params.arguments == null || (params.arguments.size() & 1) == 1) {
           System.err.println("ERROR: arguments must be specified in pairs. Aborting.");
           jc.usage();
           System.exit(1);
@@ -95,6 +87,7 @@ public class ConfigDiffer implements Runnable {
         jc.usage();
         System.exit(-1);
       }
+      ConfigDiffer cd = new ConfigDiffer(params);
       cd.run();
     } catch (Exception e) {
       e.printStackTrace();
