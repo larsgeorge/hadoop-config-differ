@@ -17,5 +17,9 @@ public class DifferParameters {
   public String templateName = null;
   @Parameter(names = { "-q", "--quiet"}, description = "Only print data, no info text")
   public boolean quiet = false;
+  @Parameter(names = { "-s", "--sort"}, description = "Sort the output by configuration keys")
+  public boolean sort = false;
+  @Parameter(names = { "-p", "--prefix"}, description = "Print all messages with a prefix")
+  public String prefix = "";
 
 }

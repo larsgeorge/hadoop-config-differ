@@ -47,6 +47,7 @@ public class ConfigurationUtils {
   private boolean quiet = false;
   private MustacheFactory mf = new DefaultMustacheFactory();
   private Mustache mustache = null;
+  private String prefix = "";
 
   /** The possible actions triggering a report on a property. */
   enum Action { Added, Renamed, Removed, Changed }
@@ -59,9 +60,11 @@ public class ConfigurationUtils {
     loadTemplate();
   }
 
-  public ConfigurationUtils(String templateName, boolean quiet) throws IOException {
+  public ConfigurationUtils(String templateName, boolean quiet, String prefix)
+  throws IOException {
     this(templateName);
     this.quiet = quiet;
+    this.prefix = prefix;
   }
 
   /**
@@ -135,16 +138,16 @@ public class ConfigurationUtils {
    */
   public void diff(ArrayList<Configuration> configs) throws IOException {
     if (!quiet) {
-      System.out.println("=========================================================");
-      System.out.println("Start");
-      System.out.println("=========================================================");
+      System.out.println(prefix + "=========================================================");
+      System.out.println(prefix + "Start");
+      System.out.println(prefix + "=========================================================");
     }
 
     MergedConfiguration mc = new MergedConfiguration();
     TreeSet<String> prevKeys = null;
     Configuration prevConf = null;
     // iterate over configs gather details
-    if (!quiet) System.out.println("Checking differences across versions...\n");
+    if (!quiet) System.out.println(prefix + "Checking differences across versions...\n");
     for (Configuration conf : configs) {
       TreeSet<String> keys = new TreeSet<String>();
       for (Property p : conf.getProperties()) {
@@ -160,7 +163,8 @@ public class ConfigurationUtils {
           TreeSet<String> addedKeys = new TreeSet<String>(keys);
           addedKeys.removeAll(prevKeys);
           if (addedKeys.size() > 0) {
-            if (!quiet) System.out.println("Added or renamed keys in " + currentVersion + ":");
+            if (!quiet) System.out.println(prefix + "Added or renamed keys in " +
+              currentVersion + ":");
             int addedCount = 0, renamedCount = 0;
             for (String key : addedKeys) {
               Property p = conf.getProperty(key);
@@ -170,23 +174,23 @@ public class ConfigurationUtils {
               if (renamed) renamedCount++; else addedCount++;
               printProperty(p, p2, renamed ? Action.Renamed : Action.Added);
             }
-            if (!quiet) System.out.println("Summary for " + currentVersion + ": " + addedCount +
-              " added and " + renamedCount + " renamed properties.");
+            if (!quiet) System.out.println(prefix + "Summary for " + currentVersion + ": " +
+              addedCount + " added and " + renamedCount + " renamed properties.");
             System.out.println();
           }
           // determine all removed keys
           TreeSet<String> removedKeys = new TreeSet<String>(prevKeys);
           removedKeys.removeAll(keys);
           if (removedKeys.size() > 0) {
-            System.out.println("Removed keys in " + currentVersion + ":");
+            if (!quiet) System.out.println(prefix + "Removed keys in " + currentVersion + ":");
             int removedCount = 0;
             for (String key : removedKeys) {
               Property p = prevConf.getProperty(key);
               removedCount++;
               printProperty(p, null, Action.Removed);
             }
-            if (!quiet) System.out.println("Summary for " + currentVersion + ": " + removedCount +
-              " removed properties.");
+            if (!quiet) System.out.println(prefix + "Summary for " + currentVersion + ": " +
+              removedCount + " removed properties.");
             System.out.println();
           }
         }
@@ -194,13 +198,14 @@ public class ConfigurationUtils {
       prevKeys = keys;
       prevConf = conf;
     }
-    if (!quiet) System.out.println("---------------------------------------------------------");
-    if (!quiet) System.out.println("Checking differences per property...\n");
+    if (!quiet) System.out.println(prefix +
+      "---------------------------------------------------------");
+    if (!quiet) System.out.println(prefix + "Checking differences per property...\n");
     int diffCount = 0;
     for (String key : mc.getProperties().keySet()) {
       TreeSet<Property> merged = mc.getProperties().get(key);
       if (merged.size() > 1) {
-        if (!quiet) System.out.println("Difference found for property " + key);
+        if (!quiet) System.out.println(prefix + "Difference found for property " + key);
         diffCount++;
         for (Property p : merged) {
           printProperty(p, null, Action.Changed);
@@ -208,8 +213,9 @@ public class ConfigurationUtils {
         System.out.println();
       }
     }
-    if (!quiet) System.out.println("Total: " + diffCount + " differences.");
-    if (!quiet) System.out.println("=========================================================");
+    if (!quiet) System.out.println(prefix + "Total: " + diffCount + " differences.");
+    if (!quiet) System.out.println(prefix +
+      "=========================================================");
   }
 
   /**
