@@ -18,12 +18,16 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.TreeSet;
 
 /**
@@ -47,7 +51,10 @@ public class ConfigurationUtils {
   private boolean quiet = false;
   private MustacheFactory mf = new DefaultMustacheFactory();
   private Mustache mustache = null;
-  private String prefix = "";
+  private String prefix = null;
+  private String lookup = null;
+  private Map<String, String> types = null;
+  private Map<String, String> units = null;
 
   /** The possible actions triggering a report on a property. */
   enum Action { Added, Renamed, Removed, Changed }
@@ -60,11 +67,39 @@ public class ConfigurationUtils {
     loadTemplate();
   }
 
-  public ConfigurationUtils(String templateName, boolean quiet, String prefix)
+  public ConfigurationUtils(String templateName, boolean quiet, String prefix, String lookup)
   throws IOException {
     this(templateName);
     this.quiet = quiet;
-    this.prefix = prefix;
+    this.prefix = prefix != null ? prefix : "";
+    this.lookup = lookup;
+    if (lookup != null) loadLookupTable();
+  }
+
+  /**
+   * Loads a special properties file with details about the type and unit of a config key.
+   */
+  private void loadLookupTable() throws IOException {
+    File propFile = new File(lookup);
+    if (propFile.exists()) {
+      types = new HashMap<String, String>();
+      units = new HashMap<String, String>();
+      Properties props = new Properties();
+      props.load(new FileReader(propFile));
+      Enumeration keys = props.propertyNames();
+      int num = 0;
+      while (keys.hasMoreElements()) {
+        String key = (String) keys.nextElement();
+        String value = props.getProperty(key);
+        String[] parts = value.split("\\|");
+        if (parts[0].length() > 0) types.put(key, parts[0]);
+        if (parts.length > 1 && parts[1].length() > 0) units.put(key, parts[1]);
+        num++;
+      }
+      if (!quiet) System.out.println(prefix + "Using " + num + " lookup entries.");
+    } else {
+      if (!quiet) System.out.println(prefix + "WARNING: Properties file not found, skipping...");
+    }
   }
 
   /**
@@ -121,7 +156,10 @@ public class ConfigurationUtils {
           finalParameter = "true".equals(((Text)field.getFirstChild()).getData());
       }
       if (attr != null) {
-        Property p = new Property(attr, value, description, info.getVersion());
+        String type = types.get(attr);
+        String unit = units.get(attr);
+        //System.out.println("DEBUG: attr -> " + attr + ", type -> " + type + ", unit -> " + unit);
+        Property p = new Property(attr, value, type, unit, description, info.getVersion());
         conf.addProperty(p);
       } else {
         LOG.error("WARNING: Attribute was null!");
@@ -150,6 +188,7 @@ public class ConfigurationUtils {
     if (!quiet) System.out.println(prefix + "Checking differences across versions...\n");
     for (Configuration conf : configs) {
       TreeSet<String> keys = new TreeSet<String>();
+      TreeSet<String> keysMissingType = new TreeSet<String>();
       for (Property p : conf.getProperties()) {
         mc.addProperty(p);
         keys.add(p.getKey());
@@ -165,17 +204,25 @@ public class ConfigurationUtils {
           if (addedKeys.size() > 0) {
             if (!quiet) System.out.println(prefix + "Added or renamed keys in " +
               currentVersion + ":");
-            int addedCount = 0, renamedCount = 0;
+            int addedCount = 0, renamedCount = 0, missingType = 0;
             for (String key : addedKeys) {
               Property p = conf.getProperty(key);
               // we assume renaming does NOT change the description (or else how can we tell?)
               Property p2 = prevConf.getPropertyByDescription(p.getDescription());
               boolean renamed = !Property.NULL.equals(p.getDescription()) && p2 != null;
               if (renamed) renamedCount++; else addedCount++;
+              if (p.getType() == null) {
+                keysMissingType.add(p.getKey());
+                missingType++;
+              }
               printProperty(p, p2, renamed ? Action.Renamed : Action.Added);
             }
             if (!quiet) System.out.println(prefix + "Summary for " + currentVersion + ": " +
               addedCount + " added and " + renamedCount + " renamed properties.");
+            if (!quiet) {
+              System.out.println(prefix + "Missing type info: " + missingType);
+              if (keysMissingType.size() > 0) System.out.println(prefix + keysMissingType);
+            }
             System.out.println();
           }
           // determine all removed keys

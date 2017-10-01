@@ -23,7 +23,8 @@ public class ConfigDiffer implements Runnable {
 
   public ConfigDiffer(DifferParameters params) throws IOException {
     this.params = params;
-    utils = new ConfigurationUtils(params.templateName, params.quiet, params.prefix);
+    utils = new ConfigurationUtils(params.templateName, params.quiet,
+      params.prefix, params.lookup);
   }
 
   private void parseArgs() {

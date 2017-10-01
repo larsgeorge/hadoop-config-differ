@@ -20,6 +20,9 @@ public class DifferParameters {
   @Parameter(names = { "-s", "--sort"}, description = "Sort the output by configuration keys")
   public boolean sort = false;
   @Parameter(names = { "-p", "--prefix"}, description = "Print all messages with a prefix")
-  public String prefix = "";
+  public String prefix;
+  @Parameter(names = { "-o", "--lookup"}, arity = 1, description = "Use a properties file " +
+    "to lookup the type and unit of a configuration parameter. Syntax: <confname>=<type>|<unit>")
+  public String lookup;
 
 }
