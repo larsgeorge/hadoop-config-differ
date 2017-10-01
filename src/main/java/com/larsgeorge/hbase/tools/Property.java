@@ -151,12 +151,22 @@ class Property implements Comparable {
       return 0;
     }
     Property property = (Property) o;
-    int kint = key != null && property.key != null ?
-      key.compareTo(property.key) : -1;
-    int vint = value != null && property.value != null ?
-      value.compareTo(property.value) : -1;
-    int dint = description != null && property.description != null ?
-      description.compareTo(property.description) : -1;
+
+    int kint = compareOne(key, property.key);
+    int vint = compareOne(value, property.value);
+    int dint = compareOne(description, property.description);
     return Math.abs(kint) + Math.abs(vint) + Math.abs(dint);
+  }
+
+  private int compareOne(Comparable here, Comparable there) {
+    int result = 0;
+    if (here != null && there != null) {
+      result = here.compareTo(there);
+    } else if (here != null && there == null) {
+      result = 1;
+    } else if (here == null && there != null) {
+      result = -1;
+    }
+    return result;
   }
 }

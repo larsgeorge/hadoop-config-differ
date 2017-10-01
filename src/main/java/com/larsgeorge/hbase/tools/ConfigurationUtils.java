@@ -156,9 +156,8 @@ public class ConfigurationUtils {
           finalParameter = "true".equals(((Text)field.getFirstChild()).getData());
       }
       if (attr != null) {
-        String type = types.get(attr);
-        String unit = units.get(attr);
-        //System.out.println("DEBUG: attr -> " + attr + ", type -> " + type + ", unit -> " + unit);
+        String type = types != null ? types.get(attr) : null;
+        String unit = units != null ? units.get(attr) : null;
         Property p = new Property(attr, value, type, unit, description, info.getVersion());
         conf.addProperty(p);
       } else {
@@ -202,7 +201,7 @@ public class ConfigurationUtils {
           TreeSet<String> addedKeys = new TreeSet<String>(keys);
           addedKeys.removeAll(prevKeys);
           if (addedKeys.size() > 0) {
-            if (!quiet) System.out.println(prefix + "Added or renamed keys in " +
+            if (!quiet) System.out.println(prefix + "Added or Renamed Keys in " +
               currentVersion + ":");
             int addedCount = 0, renamedCount = 0, missingType = 0;
             for (String key : addedKeys) {
@@ -229,7 +228,7 @@ public class ConfigurationUtils {
           TreeSet<String> removedKeys = new TreeSet<String>(prevKeys);
           removedKeys.removeAll(keys);
           if (removedKeys.size() > 0) {
-            if (!quiet) System.out.println(prefix + "Removed keys in " + currentVersion + ":");
+            if (!quiet) System.out.println(prefix + "Removed Keys in " + currentVersion + ":");
             int removedCount = 0;
             for (String key : removedKeys) {
               Property p = prevConf.getProperty(key);
