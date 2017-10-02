@@ -16,6 +16,7 @@ class Property implements Comparable {
   private String unit;
   private String description;
   private String source;
+  private boolean ignoreDescription = false;
 
   Property(String key, String value, String description, String source) {
     this(key, value, null, null, description, source);
@@ -29,6 +30,14 @@ class Property implements Comparable {
     this.description = description != null ? description : NULL;
     this.source = source;
     formatValue();
+  }
+
+  public boolean isIgnoreDescription() {
+    return ignoreDescription;
+  }
+
+  public void setIgnoreDescription(boolean ignoreDescription) {
+    this.ignoreDescription = ignoreDescription;
   }
 
   private void formatValue() {
@@ -112,15 +121,17 @@ class Property implements Comparable {
       return false;
     }
     Property property = (Property) o;
-    if (description != null ?
-      !description.equals(property.description) : property.description != null) {
-      return false;
-    }
     if (key != null ? !key.equals(property.key) : property.key != null) {
       return false;
     }
     if (value != null ? !value.equals(property.value) : property.value != null) {
       return false;
+    }
+    if (!ignoreDescription) {
+      if (description != null ?
+        !description.equals(property.description) : property.description != null) {
+        return false;
+      }
     }
     return true;
   }
@@ -129,7 +140,8 @@ class Property implements Comparable {
   public int hashCode() {
     int result = key != null ? key.hashCode() : 0;
     result = 31 * result + (value != null ? value.hashCode() : 0);
-    result = 31 * result + (description != null ? description.hashCode() : 0);
+    if (!ignoreDescription)
+      result = 31 * result + (description != null ? description.hashCode() : 0);
     return result;
   }
 
@@ -154,8 +166,12 @@ class Property implements Comparable {
 
     int kint = compareOne(key, property.key);
     int vint = compareOne(value, property.value);
-    int dint = compareOne(description, property.description);
-    return Math.abs(kint) + Math.abs(vint) + Math.abs(dint);
+    if (!ignoreDescription) {
+      int dint = compareOne(description, property.description);
+      return Math.abs(kint) + Math.abs(vint) + Math.abs(dint);
+    } else {
+      return Math.abs(kint) + Math.abs(vint);
+    }
   }
 
   private int compareOne(Comparable here, Comparable there) {

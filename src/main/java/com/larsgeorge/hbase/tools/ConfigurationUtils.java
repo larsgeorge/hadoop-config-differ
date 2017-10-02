@@ -53,11 +53,12 @@ public class ConfigurationUtils {
   private Mustache mustache = null;
   private String prefix = null;
   private String lookup = null;
+  private boolean ignoreDescription = false;
   private Map<String, String> types = null;
   private Map<String, String> units = null;
 
   /** The possible actions triggering a report on a property. */
-  enum Action { Added, Renamed, Removed, Changed }
+  enum Action { Added, Renamed, Removed, Changed, Baseline }
 
   public ConfigurationUtils() throws IOException {
   }
@@ -67,12 +68,12 @@ public class ConfigurationUtils {
     loadTemplate();
   }
 
-  public ConfigurationUtils(String templateName, boolean quiet, String prefix, String lookup)
-  throws IOException {
-    this(templateName);
-    this.quiet = quiet;
-    this.prefix = prefix != null ? prefix : "";
-    this.lookup = lookup;
+  public ConfigurationUtils(DifferParameters params) throws IOException {
+    this(params.templateName);
+    this.quiet = params.quiet;
+    this.prefix = params.prefix != null ? params.prefix : "";
+    this.lookup = params.lookup;
+    this.ignoreDescription = params.ignoreDescription;
     if (lookup != null) loadLookupTable();
   }
 
@@ -159,6 +160,7 @@ public class ConfigurationUtils {
         String type = types != null ? types.get(attr) : null;
         String unit = units != null ? units.get(attr) : null;
         Property p = new Property(attr, value, type, unit, description, info.getVersion());
+        if (ignoreDescription) p.setIgnoreDescription(true);
         conf.addProperty(p);
       } else {
         LOG.error("WARNING: Attribute was null!");
@@ -253,8 +255,10 @@ public class ConfigurationUtils {
       if (merged.size() > 1) {
         if (!quiet) System.out.println(prefix + "Difference found for property " + key);
         diffCount++;
+        boolean first = true;
         for (Property p : merged) {
-          printProperty(p, null, Action.Changed);
+          printProperty(p, null, first ? Action.Baseline : Action.Changed);
+          first = false;
         }
         System.out.println();
       }

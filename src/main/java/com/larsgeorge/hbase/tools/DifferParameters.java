@@ -24,5 +24,9 @@ public class DifferParameters {
   @Parameter(names = { "-o", "--lookup"}, arity = 1, description = "Use a properties file " +
     "to lookup the type and unit of a configuration parameter. Syntax: <confname>=<type>|<unit>")
   public String lookup;
+  @Parameter(names = { "-d", "--ignore-description"}, description = "Ignore differences in the " +
+    "description of properties")
+  public boolean ignoreDescription = false;
+
 
 }
